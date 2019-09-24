@@ -1,2 +1,2 @@
 # Toolbox
-Example files to assist in testing.
+Example scripts to assist in testing.
