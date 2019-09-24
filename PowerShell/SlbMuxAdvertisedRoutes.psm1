@@ -50,23 +50,23 @@ Function Get-SlbMuxAdvertisedRoutes {
 
     try {
         $session = New-SSHSession -ComputerName $SwitchAddress.ToString() -Credential $Credential -AcceptKey -Force -ErrorAction Stop
+        $slbRegEx = '\d+.\d+.\d+.1[2|3]'
+        $SlbMuxSum = Invoke-SSHCommandStream -Command "show ip bgp summary" -SessionId (get-sshsession).SessionId | Where-Object { $_ -match $slbRegEx }
+
+        foreach ($slbNeig in $SlbMuxSum) {
+            $slbAddr = $slbNeig.split("", 2)[0]
+            $routesCommand = ("show ip bgp neighbor {0} route" -f $slbAddr)
+            $advertisedRoutesRegex = '\d+.\d+.\d+.\d+/32'
+            $recievedRoutes = Invoke-SSHCommandStream -Command $routesCommand -SessionId (get-sshsession).SessionId | where-Object { $_ -match $advertisedRoutesRegex }
+            [PSCustomObject]@{
+                SlbMux              = $slbAddr
+                RecievedRoutes      = $recievedRoutes
+                TotalRecievedRoutes = ($recievedRoutes).Count
+            }
+        }
+        Remove-SSHSession -SessionId $session.SessionId | Out-Null
     }
     catch { 
         Write-Error -Message ("Unable to Login to {0}" -f $SwitchAddress.ToString())
     }
-    $slbRegEx = '\d+.\d+.\d+.1[2|3]'
-    $SlbMuxSum = Invoke-SSHCommandStream -Command "show ip bgp summary" -SessionId (get-sshsession).SessionId | Where-Object { $_ -match $slbRegEx }
-
-    foreach ($slbNeig in $SlbMuxSum) {
-        $slbAddr = $slbNeig.split("", 2)[0]
-        $routesCommand = ("show ip bgp neighbor {0} route" -f $slbAddr)
-        $advertisedRoutesRegex = '\d+.\d+.\d+.\d+/32'
-        $recievedRoutes = Invoke-SSHCommandStream -Command $routesCommand -SessionId (get-sshsession).SessionId | where-Object { $_ -match $advertisedRoutesRegex }
-        [PSCustomObject]@{
-            SlbMux              = $slbAddr
-            RecievedRoutes      = $recievedRoutes
-            TotalRecievedRoutes = ($recievedRoutes).Count
-        }
-    }
-    Remove-SSHSession -SessionId $session.SessionId | Out-Null
 }
