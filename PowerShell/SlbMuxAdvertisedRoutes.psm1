@@ -2,7 +2,7 @@
 Function Get-SlbMuxAdvertisedRoutes {
     <#
         .SYNOPSIS
-        Connect to a switch and get the routes for each SLBMux.  Thess commands are intended for a Cisco Nexus using 7.x.
+        Connect to a switch and get the routes for each SLBMux.  These commands are intended for a Cisco Nexus using firmware 7.x.
 
         .DESCRIPTION
         Using Posh-SSH connect to a switch using the switch credentials.
